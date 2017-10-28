@@ -26,3 +26,9 @@ message = input("Enter your message: ")
 key = os.urandom(32) #The test key is a random nuber of 32bytes 
 C,IV = Myencrypt(message,key)
 print ("Cipher Text: ",C)
+
+#Used if you want to write the cipher text to a file
+file = open('Ciphertext.txt', 'wb') 
+file.write(C)
+file.close
+print ("File succesfully created")
