@@ -11,7 +11,11 @@ def Myencrypt(message, key):
 		return None, None;
 	
 	padder = padding.PKCS7(128).padder() #Message must be padded to match block size
-	padded_message = padder.update(message.encode()) #encode() is used to turn message into byte representation
+	try:
+		message = message.encode()
+	except (AttributeError):
+		pass
+	padded_message = padder.update(message) #encode() is used to turn message into byte representation
 	padded_message = padder.finalize()
 	
 	backend = default_backend()
@@ -21,16 +25,35 @@ def Myencrypt(message, key):
 	C = encryptor.update(padded_message) + encryptor.finalize() #Generates ciphertext 
 	return C, IV
 
-#For testing purposes
+#For testing of Myencrypt
+"""
 message = input("Enter your message: ")
 key = os.urandom(32) #The test key is a random nuber of 32bytes 
 C,IV = Myencrypt(message,key)
 print ("Cipher Text: ",C)
+"""
 
 #Used if you want to write the cipher text to a file
-""" 
-file = open('Ciphertext.txt', 'wb') 
-file.write(C)
-file.close
-print ("File succesfully created")
-"""
+def WritetoFile(cipher):
+	file = open('Ciphertext.txt', 'wb') 
+	file.write(cipher)
+	file.close
+	print ("File succesfully created")
+
+
+from tkinter import Tk
+from tkinter.filedialog import askopenfilename
+Tk().withdraw()
+filename = askopenfilename()
+
+#message = open(filename, 'rb')
+#print(message.read())
+
+def MyfileEncrypt(filepath):
+	key = os.urandom(32)
+	message = open(filepath, 'rb') #opens the file in it's byte representation
+	C, IV = Myencrypt(message.read(), key) #reads file as a string of bytes
+	return C, IV, key
+C, IV, key = MyfileEncrypt(filename)
+WritetoFile(C)
+print("Program ran succesfully")
