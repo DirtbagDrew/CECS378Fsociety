@@ -35,9 +35,9 @@ C,IV = Myencrypt(message,key)
 print ("Cipher Text: ",C)
 """
 
-#Used if you want to write the cipher text to a file
+#Used for writing the cipher text to a file
 def WritetoFile(cipher):
-	while True:
+	while True: #Loop used to ensure correct user input
 		selection = input("Select an Option: \n1. Write to existing File \n2. Create new File\n")
 		if selection == '1':
 			Tk().withdraw()
@@ -53,15 +53,16 @@ def WritetoFile(cipher):
 	file.close
 	print ("File succesfully created")
 
-Tk().withdraw()
-filename = askopenfilename()
-
 def MyfileEncrypt(filepath):
 	key = os.urandom(32)
-	message = open(filepath, 'rb') #opens the file in it's byte representation
+	message = open(filepath, 'rb') #opens the file in its byte representation
 	C, IV = Myencrypt(message.read(), key) #reads file as a string of bytes
 	message.close
 	WritetoFile(C)
 	return C, IV, key
+	
+input("Press [enter] to select the file you would like to encyrpt") 	
+Tk().withdraw()
+filename = askopenfilename()
 C, IV, key = MyfileEncrypt(filename)
 print("Program ran succesfully")
