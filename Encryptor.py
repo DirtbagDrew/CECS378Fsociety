@@ -28,7 +28,9 @@ C,IV = Myencrypt(message,key)
 print ("Cipher Text: ",C)
 
 #Used if you want to write the cipher text to a file
+""" 
 file = open('Ciphertext.txt', 'wb') 
 file.write(C)
 file.close
 print ("File succesfully created")
+"""
