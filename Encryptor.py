@@ -27,19 +27,11 @@ def Myencrypt(message, key):
 	C = encryptor.update(padded_message) + encryptor.finalize() #Generates ciphertext 
 	return C, IV
 
-#For testing of Myencrypt
-"""
-message = input("Enter your message: ")
-key = os.urandom(32) #The test key is a random nuber of 32bytes 
-C,IV = Myencrypt(message,key)
-print ("Cipher Text: ",C)
-"""
-
 #Used for writing the cipher text to a file
 def WritetoFile(cipher):
 	while True: #Loop used to ensure correct user input
 		selection = input("Select an Option: \n1. Write to existing File \n2. Create new File\n")
-		if selection == '1':
+		if selection == '1': #Option used for testing, so a new encryption file does not have to be created
 			Tk().withdraw()
 			filename = askopenfilename()
 			break
@@ -49,6 +41,7 @@ def WritetoFile(cipher):
 		else:
 			print ("Incorrect Input. Please try again and type 1 or 2.")
 	file = open(filename, 'wb') 
+	print(cipher)
 	file.write(cipher)
 	file.close
 	print ("File succesfully created")
@@ -66,3 +59,25 @@ Tk().withdraw()
 filename = askopenfilename()
 C, IV, key = MyfileEncrypt(filename)
 print("Program ran succesfully")
+
+#######################################################################
+#Starting the Decryption process; Not currently working
+#######################################################################
+"""
+Tk().withdraw()
+filename = askopenfilename()
+EncMessage = open(filename, 'rb')
+
+#Peliminal Decryptor; Needs formating
+backend = default_backend()
+cipher = Cipher(algorithms.AES(key), modes.CBC(IV), backend=backend)
+decryptor = cipher.decryptor()
+print(EncMessage)
+m = decryptor.update(C) + decryptor.finalize()
+print(m)
+
+unpadder = padding.PKCS7(128).unpadder()
+data = unpadder.update(m)
+data += unpadder.finalize()
+print(data.decode())
+"""
