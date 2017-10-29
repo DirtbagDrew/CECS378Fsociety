@@ -4,6 +4,8 @@ import os
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import padding
+from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.hazmat.primitives import serialization
 from tkinter import Tk #used for GUI file picker
 from tkinter.filedialog import askopenfilename
 
@@ -55,30 +57,67 @@ def MyfileEncrypt(filepath):
 	WritetoFile(C)
 	return C, IV, key
 
-input("Press [enter] to select the file you would like to encyrpt")
+def MyRSAencrypt(filepath, RSA_Publickey_filepath):
+        C, IV, key = MyfileEncrypt(filepath)
+        key_file=RSA_Publickey_filepath.read()
+        
+#def WritetoFile():
+#    selection = input("Select an Option: \n1. Create New Public Key \n2. Use existing Public Key\n")
+#    if selection == '1':
+        
+    
+
+#input("Press [enter] to select the file you would like to encyrpt")
+#Tk().withdraw()
+#filename = askopenfilename()
+
+#input("Press [enter] to select the RSA Public Key")
+#Tk().withdraw()
+#rsaPrivKey = askopenfilename()
+
+
 Tk().withdraw()
 filename = askopenfilename()
-C, IV, key = MyfileEncrypt(filename)
-print("Program ran succesfully")
+#file = open(filename, "rb")
+	#print(cipher)
+#priv_key =file.read().decode()
+#public_key= priv_key.public_key()
 
-#######################################################################
-#Starting the Decryption process; Not currently working
-#######################################################################
+#filename = input("file to write: ")
+#file = open(filename, "wb")
+#file.write(public_key)
+#file.close
 
-Tk().withdraw()
-filename = askopenfilename()
-EncMessage = open(filename, "rb")
+with open(filename, "rb") as key_file:
+     private_key = serialization.load_pem_private_key(
+         key_file.read(),
+         password=None,
+         backend=default_backend()
+     )
 
-#Peliminal Decryptor; Needs formating
-backend = default_backend()
-cipher = Cipher(algorithms.AES(key), modes.CBC(IV), backend=backend)
-decryptor = cipher.decryptor()
-#print(EncMessage)
-m = decryptor.update(C) + decryptor.finalize()
-#print(m)
+public_key=private_key.public_key()
+filename = input("file to write: ")
+file = open(filename, "wb")
+file.write(public_key.public_bytes(pem, SubjectPublicKeyInfo))
+file.close
+#RSACipher, C, IV = MyRSAencrypt(filename, rsaPubKey)
 
-unpadder = padding.PKCS7(128).unpadder()
-data = unpadder.update(m)
-data += unpadder.finalize()
-WritetoFile(data)
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
