@@ -3,9 +3,11 @@
 import os
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives import padding
+from cryptography.hazmat.primitives import padding, hashes
 from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.hazmat.primitives.asymmetric.padding import OAEP, MGF1
 from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.serialization import load_ssh_public_key
 from tkinter import Tk #used for GUI file picker
 from tkinter.filedialog import askopenfilename
 
@@ -28,6 +30,8 @@ def Myencrypt(message, key):
 	encryptor = cipher.encryptor()
 	C = encryptor.update(padded_message) + encryptor.finalize() #Generates ciphertext
 	return C, IV
+
+
 
 #Used for writing the cipher text to a file
 def WritetoFile(cipher):
@@ -58,15 +62,58 @@ def MyfileEncrypt(filepath):
 	return C, IV, key
 
 def MyRSAencrypt(filepath, RSA_Publickey_filepath):
+        backend=default_backend()
         C, IV, key = MyfileEncrypt(filepath)
-        key_file=RSA_Publickey_filepath.read()
+
+        with open(RSA_Publickey_filepath, "rb") as key_file:
+         private_key = serialization.load_pem_private_key(
+             key_file.read(),
+             password=None,
+             backend=default_backend()
+         )
+
+        public_key = private_key.public_key()
         
+        RSACipher = public_key.encrypt(
+        key,
+        OAEP(
+        mgf=MGF1(algorithm=hashes.SHA1()),
+        algorithm=hashes.SHA1(),
+        label=None
+        )       
+        )
+
+         #with open(RSA_Publickey_filepath, "rb") as key_file:
+        #    public_key=load_ssh_public_key(key_file.read(), backend=backend)
+        
+        #with open(RSA_Publickey_filepath, "rb") as key_file:
+         #public_key = serialization.load_ssh_public_key(
+         #key_file.read(),
+         #backend=backend
+         #)
+
+        #key_file=public_key.public_bytes(
+        #encoding=serialization.Encoding.PEM,
+        #format=serialization.PublicFormat.SubjectPublicKeyInfo)
+        WritetoFile(RSACipher)
+        return RSACipher, C, IV
+        
+        
+
+        
+input("Press [enter] to select the private key")    
+Tk().withdraw()
+rsaPubKey = askopenfilename()
+
+input("Press [enter] to select the file you would like to encyrpt")
+Tk().withdraw()
+filename = askopenfilename()
+
+RSACipher, C, IV = MyRSAencrypt(filename, rsaPubKey)
+
 #def WritetoFile():
 #    selection = input("Select an Option: \n1. Create New Public Key \n2. Use existing Public Key\n")
 #    if selection == '1':
-        
-    
-
 #input("Press [enter] to select the file you would like to encyrpt")
 #Tk().withdraw()
 #filename = askopenfilename()
@@ -76,8 +123,7 @@ def MyRSAencrypt(filepath, RSA_Publickey_filepath):
 #rsaPrivKey = askopenfilename()
 
 
-Tk().withdraw()
-filename = askopenfilename()
+
 #file = open(filename, "rb")
 	#print(cipher)
 #priv_key =file.read().decode()
@@ -88,18 +134,13 @@ filename = askopenfilename()
 #file.write(public_key)
 #file.close
 
-with open(filename, "rb") as key_file:
-     private_key = serialization.load_pem_private_key(
-         key_file.read(),
-         password=None,
-         backend=default_backend()
-     )
 
-public_key=private_key.public_key()
-filename = input("file to write: ")
-file = open(filename, "wb")
-file.write(public_key.public_bytes(pem, SubjectPublicKeyInfo))
-file.close
+
+#public_key=private_key.public_key()
+#filename = input("file to write: ")
+#file = open(filename, "wb")
+#file.write(public_key.public_bytes(pem, SubjectPublicKeyInfo))
+#file.close
 #RSACipher, C, IV = MyRSAencrypt(filename, rsaPubKey)
 
 
