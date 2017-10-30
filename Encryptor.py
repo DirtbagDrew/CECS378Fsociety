@@ -5,7 +5,7 @@ from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import padding
 from tkinter import Tk #used for GUI file picker
-from tkinter.filedialog import askopenfilename
+from tkinter.filedialog import askopenfilename, asksaveasfilename
 
 def Myencrypt(message, key):
 	if len(key) < 32:
@@ -29,17 +29,9 @@ def Myencrypt(message, key):
 
 #Used for writing the cipher text to a file
 def WritetoFile(cipher):
-	while True: #Loop used to ensure correct user input
-		selection = input("Select an Option: \n1. Write to existing File \n2. Create new File\n")
-		if selection == '1': #Option used for testing, so a new encryption file does not have to be created
-			Tk().withdraw()
-			filename = askopenfilename()
-			break
-		elif selection == '2':
-			filename = input("Enter the name of the txt file you would like to create: ")
-			break
-		else:
-			print ("Incorrect Input. Please try again and type 1 or 2.")
+	input("Press [enter] to select new or existing save location of encyrpted file")
+	Tk().withdraw()
+	filename = asksaveasfilename(title="Select Save Location")
 	file = open(filename, "wb")
 	#print(cipher)
 	file.write(cipher)
@@ -57,14 +49,14 @@ def MyfileEncrypt(filepath):
 
 input("Press [enter] to select the file you would like to encyrpt")
 Tk().withdraw()
-filename = askopenfilename()
+filename = askopenfilename(title="Select File to Encrypt")
 C, IV, key = MyfileEncrypt(filename)
 print("Program ran succesfully")
 
 #######################################################################
 #Starting the Decryption process; Not currently working
 #######################################################################
-
+"""
 Tk().withdraw()
 filename = askopenfilename()
 EncMessage = open(filename, "rb")
@@ -81,4 +73,4 @@ unpadder = padding.PKCS7(128).unpadder()
 data = unpadder.update(m)
 data += unpadder.finalize()
 WritetoFile(data)
-
+"""
