@@ -1,4 +1,4 @@
-#Encryptor
+#RSAEncryptor
 #Author: FSociety
 import os
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
@@ -32,8 +32,6 @@ def Myencrypt(message, key):
 	encryptor = cipher.encryptor()
 	C = encryptor.update(padded_message) + encryptor.finalize() #Generates ciphertext
 	return C, IV
-
-
 
 #Used for writing the cipher text to a file
 def WritetoFile(cipher, ext):
@@ -109,13 +107,12 @@ private_key = rsa.generate_private_key( #generate a private key
 
 public_key = private_key.public_key()   # generate public key
 
-input("Press [enter] to select the file you would like to encyrpt")
+input("Press [enter] to select the file you would like to encrypt")
 Tk().withdraw()
-filename = askopenfilename()
-
-RSACipher, C, IV, ext = MyRSAencrypt(filename, public_key)
-
-MyRSAdecrypt(RSACipher, C, IV, ext, private_key)
+filename = askopenfilename(title = "Select File to Encrypt")
+RSACipher, C, IV, ext = MyRSAencrypt(filename, public_key) #Encrypt
+input("Press [enter] to select file to decrypt")
+MyRSAdecrypt(RSACipher, C, IV, ext, private_key) #Decrypt
 
 
 
