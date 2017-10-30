@@ -59,6 +59,7 @@ def Decryptor(IV, key, ext):
 	cipher = Cipher(algorithms.AES(key), modes.CBC(IV), backend=backend)
 	decryptor = cipher.decryptor() #decrypts
 	m = decryptor.update(EncMessage.read()) + decryptor.finalize()
+	EncMessage.close
 
 	unpadder = padding.PKCS7(128).unpadder() #unpads
 	data = unpadder.update(m) 
