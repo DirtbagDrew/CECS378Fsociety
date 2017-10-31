@@ -52,7 +52,7 @@ def MyfileEncrypt(filepath):
 	message.close
 	ext = Path(filepath).suffix # grabs extension of file
 	input("Press [enter] to select new or existing save location of encyrpted file")
-	WritetoFile(C, ext)
+	WritetoFile(C, None)
 	return C, IV, key, ext
 
 def Decryptor(IV, key, ext):
@@ -79,8 +79,8 @@ def MyRSAencrypt(filepath, RSA_Publickey_filepath):
         RSACipher = public_key.encrypt(         #use RSA encrypt to encrypt the public key
                 key,
                 OAEP(
-                        mgf=MGF1(algorithm=hashes.SHA1()),
-                        algorithm=hashes.SHA1(),
+                        mgf=MGF1(algorithm=hashes.SHA256()),
+                        algorithm=hashes.SHA256(),
                         label=None
                 )       
         )
@@ -91,8 +91,8 @@ def MyRSAdecrypt (RSACipher, C, IV, ext, RSA_Privatekey_filepath):
         key = private_key.decrypt(      #uses private key to decrypt key used for message
         RSACipher,
         OAEP(
-         mgf=uno(algorithm=hashes.SHA1()),
-         algorithm=hashes.SHA1(),
+         mgf=uno(algorithm=hashes.SHA256()),
+         algorithm=hashes.SHA256(),
          label=None
      )
  )
