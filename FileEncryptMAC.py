@@ -114,14 +114,17 @@ def MyRSAdecrypt (RSACipher, C, IV, ext, RSA_Privatekey_filepath, tag):
 		HMACKey = key[len(EncKey):]
 		Decryptor(IV, EncKey, ext, HMACKey, tag) #decrypt the message using decrypted key
         
-        
-private_key = rsa.generate_private_key( #generate a private key
-     public_exponent=65537,
-     key_size=2048,
-     backend=default_backend()
-)
-	 
-public_key = private_key.public_key()   # generate public key
+def generate_key_pair():  
+    private_key = rsa.generate_private_key( #generate a private key
+         public_exponent=65537,
+         key_size=2048,
+         backend=default_backend()
+    )
+    public_key = private_key.public_key()   # generate public key
+    return public_key, private_key
+
+if(os.path.exists('./public_key.pem') == False):
+    public_key, private_key = generate_key_pair()
 
 private_pem = private_key.private_bytes( #Used to create private_key PEM file
             encoding=serialization.Encoding.PEM,
@@ -138,6 +141,8 @@ private_file.write(private_pem)
 public_file = open ("public_key.pem", "wb") #Writes public_key to file
 public_file.write(public_pem)
 
+
+
 input("Press [enter] to select the file you would like to encrypt")
 Tk().withdraw()
 filename = askopenfilename(title = "Select File to Encrypt")
@@ -146,6 +151,8 @@ input("Press [enter] to select file to decrypt")
 MyRSAdecrypt(RSACipher, C, IV, ext, "private_key.pem", tag) #Decrypt
 
 
+    
+    
 
 
 
