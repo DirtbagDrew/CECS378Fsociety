@@ -107,6 +107,13 @@ private_key = rsa.generate_private_key( #generate a private key
 
 public_key = private_key.public_key()   # generate public key
 
+private_pem = private_key.private_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PrivateFormat.TraditionalOpenSSL,
+            encryption_algorithm=serialization.NoEncryption()
+)
+WritetoFile(private_pem, None) #Writes private key to file
+
 input("Press [enter] to select the file you would like to encrypt")
 Tk().withdraw()
 filename = askopenfilename(title = "Select File to Encrypt")
