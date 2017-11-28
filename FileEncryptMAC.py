@@ -150,8 +150,7 @@ RSACipher, C, IV, ext, tag = MyRSAencrypt(filename, "public_key.pem") #Encrypt
 input("Press [enter] to select file to decrypt")
 MyRSAdecrypt(RSACipher, C, IV, ext, "private_key.pem", tag) #Decrypt
 
-
-    
+""
     
 
 
