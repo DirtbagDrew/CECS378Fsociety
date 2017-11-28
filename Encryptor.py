@@ -1,8 +1,3 @@
-"""
-1) Change numbers to constants
-2) Don't hardcode public and private key, make them files.
-"""
-
 #Encryptor
 #Author: FSociety
 import os
