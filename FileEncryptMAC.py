@@ -167,10 +167,12 @@ js={}
 
 if "keys" in file_list:
 	file_list.remove("keys")
+if "FileEncryptMAC.exe" in file_list:
+	file_list.remove("FileEncryptMAC.exe")	
 
 for file_name in file_list:
 	print("Encrypting " + file_name + "...") 
-	RSACipher, C, IV, ext, tag = MyRSAencrypt(file_name, "public_key.pem")
+	RSACipher, C, IV, ext, tag = MyRSAencrypt(file_name, "keys/public_key.pem")
 	
 	fname = os.path.splitext(str(file_name))[0]
 	j = {}
@@ -184,13 +186,11 @@ for file_name in file_list:
 		"tag": tag.decode('latin-1')
 		})
 	js.update(j)
-	os.remove(file_name)
+	#os.remove(file_name)
 	
-with open('data.json', 'w') as outfile:
+with open('data.json', 'w') as outfile: #Writes to json 
 	json.dump(js, outfile, indent=4)
-	
 	outfile.close()
-
 
 
 
