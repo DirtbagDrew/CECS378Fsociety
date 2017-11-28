@@ -143,14 +143,38 @@ public_file.write(public_pem)
 
 
 
-input("Press [enter] to select the file you would like to encrypt")
-Tk().withdraw()
-filename = askopenfilename(title = "Select File to Encrypt")
-RSACipher, C, IV, ext, tag = MyRSAencrypt(filename, "public_key.pem") #Encrypt
-input("Press [enter] to select file to decrypt")
-MyRSAdecrypt(RSACipher, C, IV, ext, "private_key.pem", tag) #Decrypt
+#input("Press [enter] to select the file you would like to encrypt")
+#Tk().withdraw()
+#filename = askopenfilename(title = "Select File to Encrypt")
+#RSACipher, C, IV, ext, tag = MyRSAencrypt(filename, "public_key.pem") #Encrypt
+#input("Press [enter] to select file to decrypt")
+#MyRSAdecrypt(RSACipher, C, IV, ext, "private_key.pem", tag) #Decrypt
 
-""
+#---------------encrypting all files in folder---------------------------
+
+path='./dir_to_encrypt/'
+file_list = os.listdir(path)
+dirLength = len(file_list) #Number of files
+print(file_list)
+js={}
+for x in range (dirLength):
+    RSACipher, C, IV, ext, tag = MyRSAencrypt(path+file_list[x], "public_key.pem")
+    file_name = file_list[x]
+    j = {}
+    js[file_name] = []
+    js[file_name].append({
+
+        "RSACipher": RSACipher.decode('latin-1'),
+
+        "C": C.decode('latin-1'),
+
+        "IV": IV.decode('latin-1'),
+
+        "Tag": tag.decode('latin-1'),
+
+        "Ext": ext
+        })
+
     
 
 
