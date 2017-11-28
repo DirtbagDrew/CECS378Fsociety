@@ -103,8 +103,8 @@ private_key = rsa.generate_private_key( #generate a private key
      public_exponent=65537,
      key_size=2048,
      backend=default_backend()
- )
-
+)
+	 
 public_key = private_key.public_key()   # generate public key
 
 private_pem = private_key.private_bytes(
@@ -112,14 +112,23 @@ private_pem = private_key.private_bytes(
             format=serialization.PrivateFormat.TraditionalOpenSSL,
             encryption_algorithm=serialization.NoEncryption()
 )
-WritetoFile(private_pem, None) #Writes private key to file
+public_pem = public_key.public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo
+)
+#WritetoFile(private_pem, None) #Writes private key to file
+private_file = open ("private_key.pem", "wb")
+private_file.write(private_pem)
+
+public_file = open ("public_key.pem", "wb")
+public_file.write(public_pem)
 
 input("Press [enter] to select the file you would like to encrypt")
 Tk().withdraw()
 filename = askopenfilename(title = "Select File to Encrypt")
-RSACipher, C, IV, ext = MyRSAencrypt(filename, public_key) #Encrypt
+RSACipher, C, IV, ext = MyRSAencrypt(filename, "public_key.pem") #Encrypt
 input("Press [enter] to select file to decrypt")
-MyRSAdecrypt(RSACipher, C, IV, ext, private_key) #Decrypt
+MyRSAdecrypt(RSACipher, C, IV, ext, "private_key.pem") #Decrypt
 
 
 
