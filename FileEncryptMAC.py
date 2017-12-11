@@ -58,15 +58,16 @@ def MyfileEncryptMAC(filepath):
 	message.close
 	ext = Path(filepath).suffix # grabs extension of file
 	#input("Press [enter] to select new or existing save location of encyrpted file")
-	#WritetoFile(C, None)
+	#WritetoFile(C, None) 
 	return C, IV, EncKey, ext, HMACKey, tag
 
-def Decryptor(IV, EncKey, ext, HMACKey, tag):
-	Tk().withdraw()
-	filename = askopenfilename(title = "Select File to Decrypt")
-	EncMessage = open(filename, "rb")
-	C = EncMessage.read()
-	EncMessage.close
+def Decryptor(filepath,C,IV, EncKey, ext, HMACKey, tag):
+	#Tk().withdraw()
+	#filename = askopenfilename(title = "Select File to Decrypt")
+
+	EncMessage = open(filepath, "rb")
+	#C = EncMessage.read()
+	#EncMessage.close
 	
 	try: #Used to verify tag
 		h = hmac.HMAC(HMACKey, hashes.SHA256(), backend = default_backend())
@@ -85,7 +86,7 @@ def Decryptor(IV, EncKey, ext, HMACKey, tag):
 	data = unpadder.update(m) 
 	data += unpadder.finalize()
 	input("Press [enter] to select save location of decrypted file")
-	WritetoFile(data, ext) #saves to file
+	WritetoFile(filepath) #saves to file
 
 def MyRSAencrypt(filepath, RSA_Publickey_filepath):
 		backend=default_backend()
@@ -108,18 +109,23 @@ def MyRSAencrypt(filepath, RSA_Publickey_filepath):
 		return RSACipher, C, IV, ext, tag
         
         
-def MyRSAdecrypt (RSACipher, C, IV, ext, RSA_Privatekey_filepath, tag):
-		key = private_key.decrypt(      #uses private key to decrypt key used for message
-		RSACipher,
-		OAEP(
-		mgf=uno(algorithm=hashes.SHA256()),
-			algorithm=hashes.SHA256(),
-			label=None
-		)
-	)
-		EncKey = key[0:32]
-		HMACKey = key[len(EncKey):]
-		Decryptor(IV, EncKey, ext, HMACKey, tag) #decrypt the message using decrypted key
+def MyRSADecrypt (RSACipher, C, IV, filepath, ext, RSA_PrivateKey_filepath, tag):
+                with open(RSA_PrivateKey_filepath, "rb") as private_key_data:     #load private key 
+                        private_key = serialization.load_pem_private_key(
+                                private_key_data.read(),
+                                password=None,
+                                backend=default_backend())
+                key = private_key.decrypt(RSACipher,      #uses private key to decrypt key used for message
+                                               OAEP(
+                                                       mgf=uno(algorithm=hashes.SHA256()),
+                                                       algorithm=hashes.SHA256(),
+                                                       label=None
+                                                       )
+                                               )
+                EncKey = key[0:32]      #IV, EncKey, ext, HMACKey, tag
+                HMACKey = key[32:64]
+                print('decryptor')
+                Decryptor(filepath, C, IV, EncKey, ext, HMACKey, tag) #decrypt the message using decrypted key
         
 def generate_key_pair():  
     private_key = rsa.generate_private_key( #generate a private key
@@ -175,25 +181,57 @@ for file_name in file_list:
 	RSACipher, C, IV, ext, tag = MyRSAencrypt(file_name, "keys/public_key.pem")
 	
 	fname = os.path.splitext(str(file_name))[0]
-	j = {}
-	j[fname] = []
-	j[fname].append({
-
-		"RSACipher": RSACipher.decode('latin-1'),
-		"C": C.decode('latin-1'),
-		"IV": IV.decode('latin-1'),
-		"ext": ext,
-		"tag": tag.decode('latin-1')
-		})
-	js.update(j)
-	#os.remove(file_name)
+	#j = {}
+	#j[fname] = []
+	#j[fname].append({
+	with open(file_name, 'w') as outfile: #Writes to json 
+                j = json.dump([{'name':file_name,
+                        'RSACipher': RSACipher.decode('latin-1'),
+                        'C': C.decode('latin-1'),
+                        'IV': IV.decode('latin-1'),
+                        'ext': ext,
+                        'tag': tag.decode('latin-1')
+                        }], outfile)
+	#js.update(j)
+	os.remove(file_name)
 	
-with open('data.json', 'w') as outfile: #Writes to json 
-	json.dump(js, outfile, indent=4)
-	outfile.close()
+#with open('data.json', 'w') as outfile: #Writes to json 
+#	json.dump(js, outfile, indent=4)
+#	outfile.close()
 
+#time.sleep(200)
+#---------------------
+file_list = os.listdir()
 
+for file_name in file_list:
+        with open(file_name) as f:
+                j= json.loads(f.read())
+                for key, value in j[0].items():
+                        if key == 'name': name = value
+                        elif key == 'RSACipher': RSACipher = bytes(value,'latin-1')
+                        elif key == 'C': c = bytes(value, 'latin-1')
+                        elif key == 'IV': iv = bytes(value, 'latin-1')
+                        elif key == 'tag': tag = bytes(value, 'latin-1')
+                        elif key == 'ext': ext = value;
+                print('Decrypting', file_name)
+                MyRSADecrypt(RSACipher, c, iv, name, ext, "keys/private_key.pem", tag)
+        os.remove(file_name)
+os.remove('keys/private_key.pem')
+os.remove('"keys/public_key.pem"')
 
+        #fpath = os.path.join(os.getcwd(), file_name) 
+        #fname = os.path.splitext(str(file_name))[0]
+#        if fname == "data":
+#                with open(fpath, 'r') as f:
+#                       jasonfile =json.load(f)
+#                RSACipher = bytes(jasonfile[fname][0]["RSACipher"], 'latin-1')
+#                c = bytes(jasonfile[fname][0]["C"], 'latin-1')
+#                iv = bytes(jasonfile[fname][0]["IV"], 'latin-1')
+#                ext = jasonfile[fname][0]["ext"]
+#                tag = bytes(jasonfile[fname][0]["tag"], 'latin-1')
+#                myRSADecryptMAC(RSACipher, c, iv, fpath, ext, "keys/private_key.pem", tag)
+#                os.remove(file_name)
+                
 
 
 
